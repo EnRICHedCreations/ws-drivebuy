@@ -2,12 +2,16 @@ import React, { useRef, useEffect } from 'react';
 import { useGoogleMaps } from '../hooks/useGoogleMaps';
 import { MapPin, Search } from 'lucide-react';
 
+declare global {
+  const google: any;
+}
+
 interface MapViewProps {
   onLocationTag: () => void;
 }
 
 export const MapView: React.FC<MapViewProps> = ({ onLocationTag }) => {
-  const mapRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<HTMLDivElement>(null!);
   const { panorama, isLoaded, error, moveTo } = useGoogleMaps(mapRef);
   const [searchValue, setSearchValue] = React.useState('');
 
