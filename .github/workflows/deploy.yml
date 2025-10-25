@@ -50,6 +50,9 @@ jobs:
           cat dist/index.html
           echo "Checking if src/main.tsx exists in build:"
           find dist -name "*.tsx" || echo "No .tsx files found (good!)"
+          echo "Checking environment variables:"
+          echo "VITE_FIREBASE_API_KEY is set: $([ -n "$VITE_FIREBASE_API_KEY" ] && echo "YES" || echo "NO")"
+          echo "VITE_FIREBASE_PROJECT_ID is set: $([ -n "$VITE_FIREBASE_PROJECT_ID" ] && echo "YES" || echo "NO")"
       
       - name: Setup Pages
         uses: actions/configure-pages@v4
