@@ -65,7 +65,7 @@ export const MapView = forwardRef<MapViewRef, MapViewProps>(({ onLocationTag }, 
   return (
     <div className="map-container relative w-full h-full">
       {/* Search Bar */}
-      <div className="absolute top-4 left-4 right-4 z-10">
+      <div className="absolute top-4 left-4 z-10 w-1/2 max-w-md">
         <form onSubmit={handleSearch} className="flex gap-2">
           <input
             type="text"
