@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { X, Camera } from 'lucide-react';
 import type { Lead } from '../types';
-import html2canvas from 'html2canvas';
 
 interface LeadFormProps {
   location: {
@@ -52,24 +51,45 @@ export const LeadForm: React.FC<LeadFormProps> = ({ location, onSave, onClose })
   };
 
   const handleScreenshot = async () => {
-    const mapElement = document.querySelector('.map-container') as HTMLElement;
-    if (!mapElement) return;
-
     try {
-      const canvas = await html2canvas(mapElement, {
-        useCORS: true,
-        logging: false,
-        allowTaint: true
-      });
-      const screenshot = canvas.toDataURL('image/png');
-      setFormData(prev => ({
-        ...prev,
-        screenshots: [...prev.screenshots, screenshot]
-      }));
-      alert('Screenshot captured! Note: Google Street View may appear as a blank area due to WebGL rendering.');
+      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+      if (!apiKey) {
+        alert('Google Maps API key not configured');
+        return;
+      }
+
+      // Calculate field of view from zoom (0-5 range to 10-120 degrees)
+      const fov = Math.max(10, Math.min(120, 120 - (location.zoom * 20)));
+
+      // Build Street View Static API URL
+      const url = `https://maps.googleapis.com/maps/api/streetview?` +
+        `size=800x600` +
+        `&location=${location.lat},${location.lng}` +
+        `&heading=${location.heading}` +
+        `&pitch=${location.pitch}` +
+        `&fov=${fov}` +
+        `&key=${apiKey}`;
+
+      // Fetch the image
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch Street View image');
+
+      // Convert to base64
+      const blob = await response.blob();
+      const reader = new FileReader();
+
+      reader.onloadend = () => {
+        const base64data = reader.result as string;
+        setFormData(prev => ({
+          ...prev,
+          screenshots: [...prev.screenshots, base64data]
+        }));
+      };
+
+      reader.readAsDataURL(blob);
     } catch (err) {
       console.error('Screenshot error:', err);
-      alert('Screenshot capture failed. Google Street View uses WebGL rendering which cannot be captured. The location data will still be saved.');
+      alert('Failed to capture screenshot. Please check your internet connection and try again.');
     }
   };
 
