@@ -56,21 +56,27 @@ export const LeadForm: React.FC<LeadFormProps> = ({ location, onSave, onClose })
     if (!mapElement) return;
 
     try {
-      const canvas = await html2canvas(mapElement);
+      const canvas = await html2canvas(mapElement, {
+        useCORS: true,
+        logging: false,
+        allowTaint: true
+      });
       const screenshot = canvas.toDataURL('image/png');
       setFormData(prev => ({
         ...prev,
         screenshots: [...prev.screenshots, screenshot]
       }));
+      alert('Screenshot captured! Note: Google Street View may appear as a blank area due to WebGL rendering.');
     } catch (err) {
       console.error('Screenshot error:', err);
+      alert('Screenshot capture failed. Google Street View uses WebGL rendering which cannot be captured. The location data will still be saved.');
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    onSave({
+
+    const leadData: any = {
       address: location.address,
       lat: location.lat,
       lng: location.lng,
@@ -80,7 +86,6 @@ export const LeadForm: React.FC<LeadFormProps> = ({ location, onSave, onClose })
         zoom: location.zoom
       },
       propertyType: formData.propertyType,
-      estimatedValue: formData.estimatedValue ? parseFloat(formData.estimatedValue) : undefined,
       distressScore: calculateDistressScore(),
       indicators: formData.indicators,
       notes: formData.notes,
@@ -89,7 +94,14 @@ export const LeadForm: React.FC<LeadFormProps> = ({ location, onSave, onClose })
       tags: formData.tags,
       status: 'new',
       sharedWith: []
-    });
+    };
+
+    // Only add estimatedValue if it has a value (Firestore doesn't allow undefined)
+    if (formData.estimatedValue) {
+      leadData.estimatedValue = parseFloat(formData.estimatedValue);
+    }
+
+    onSave(leadData);
   };
 
   return (
