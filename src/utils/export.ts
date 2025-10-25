@@ -1,4 +1,4 @@
-import { Lead } from '../types';
+import type{ Lead } from '../types';
 import jsPDF from 'jspdf';
 
 export const exportToCSV = (leads: Lead[]): void => {

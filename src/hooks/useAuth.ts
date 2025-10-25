@@ -33,7 +33,7 @@ export const useAuth = () => {
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    return await signInWithPopup(auth, provider);
+    return await signInWithRedirect(auth, provider);
   };
 
   const signOut = async () => {
