@@ -50,9 +50,17 @@ jobs:
           cat dist/index.html
           echo "Checking if src/main.tsx exists in build:"
           find dist -name "*.tsx" || echo "No .tsx files found (good!)"
-          echo "Checking environment variables:"
-          echo "VITE_FIREBASE_API_KEY is set: $([ -n "$VITE_FIREBASE_API_KEY" ] && echo "YES" || echo "NO")"
-          echo "VITE_FIREBASE_PROJECT_ID is set: $([ -n "$VITE_FIREBASE_PROJECT_ID" ] && echo "YES" || echo "NO")"
+          echo "Checking if Firebase config is embedded in build:"
+          if grep -r "ws-drivebuy" dist/assets/*.js > /dev/null; then
+            echo "Firebase project ID found in build: YES"
+          else
+            echo "Firebase project ID found in build: NO"
+          fi
+          if grep -r "AIzaSyC" dist/assets/*.js > /dev/null; then
+            echo "Firebase API key found in build: YES"
+          else
+            echo "Firebase API key found in build: NO"
+          fi
       
       - name: Setup Pages
         uses: actions/configure-pages@v4
