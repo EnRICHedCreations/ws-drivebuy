@@ -1,13 +1,17 @@
-import { Loader } from '@googlemaps/js-api-loader';
-
-const loader = new Loader({
-  apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-  version: 'weekly',
-  libraries: ['places', 'geometry']
-});
+import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
 
 export const initGoogleMaps = async () => {
-  return await loader.load();
+  // Set the API key and options
+  setOptions({
+    apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+    version: 'weekly'
+  });
+
+  // Import the required libraries
+  await Promise.all([
+    importLibrary('places'),
+    importLibrary('geometry')
+  ]);
 };
 
 export const createStreetViewPanorama = (
