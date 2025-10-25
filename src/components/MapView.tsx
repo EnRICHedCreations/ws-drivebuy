@@ -1,25 +1,34 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, forwardRef, useImperativeHandle } from 'react';
 import { useGoogleMaps } from '../hooks/useGoogleMaps';
 import { MapPin, Search } from 'lucide-react';
 
-declare global {
-  const google: any;
-}
-
 interface MapViewProps {
-  onLocationTag: () => void;
+  onLocationTag: (location: { lat: number; lng: number; heading: number; pitch: number; zoom: number; } | null) => void;
 }
 
-export const MapView: React.FC<MapViewProps> = ({ onLocationTag }) => {
+export interface MapViewRef {
+  moveTo: (lat: number, lng: number) => void;
+}
+
+export const MapView = forwardRef<MapViewRef, MapViewProps>(({ onLocationTag }, ref) => {
   const mapRef = useRef<HTMLDivElement>(null!);
-  const { panorama, isLoaded, error, moveTo } = useGoogleMaps(mapRef);
+  const { isLoaded, error, moveTo, getCurrentLocation } = useGoogleMaps(mapRef);
   const [searchValue, setSearchValue] = React.useState('');
+
+  useImperativeHandle(ref, () => ({
+    moveTo,
+  }));
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchValue.trim()) return;
 
-    const geocoder = new google.maps.Geocoder();
+    if (!window.google || !window.google.maps) {
+      console.error('Google Maps API not loaded');
+      return;
+    }
+
+    const geocoder = new window.google.maps.Geocoder();
     try {
       const result = await geocoder.geocode({ address: searchValue });
       const location = result.results[0]?.geometry.location;
@@ -76,7 +85,7 @@ export const MapView: React.FC<MapViewProps> = ({ onLocationTag }) => {
 
       {/* Tag Button */}
       <button
-        onClick={onLocationTag}
+        onClick={() => onLocationTag(getCurrentLocation())}
         className="absolute bottom-8 right-8 z-10 px-6 py-4 bg-red-600 text-white rounded-full shadow-2xl hover:bg-red-700 transition transform hover:scale-110 flex items-center gap-2 font-semibold"
       >
         <MapPin size={24} />
@@ -87,4 +96,4 @@ export const MapView: React.FC<MapViewProps> = ({ onLocationTag }) => {
       <div ref={mapRef} className="w-full h-full" />
     </div>
   );
-};
+});

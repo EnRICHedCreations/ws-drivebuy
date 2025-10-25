@@ -1,43 +1,41 @@
-import React, { useState } from 'react';
-import { MapView } from './components/MapView';
+import React, { useState, useRef } from 'react';
+import { MapView, MapViewRef } from './components/MapView';
 import { LeadForm } from './components/LeadForm';
 import { LeadList } from './components/LeadList';
 import { ExportButton } from './components/ExportButton';
 import { useAuth } from './hooks/useAuth';
 import { useLeads } from './hooks/useLeads';
 import { reverseGeocode } from './services/maps';
+import { Lead } from './types';
 import { Menu, Sun, Moon, LogOut } from 'lucide-react';
 
 function App() {
   const { user, loading, signOut } = useAuth();
   const { leads, addLead, deleteLead } = useLeads(user?.uid || '');
   const [showModal, setShowModal] = useState(false);
-  const [currentLocation, setCurrentLocation] = useState<any>(null);
+  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number; heading: number; pitch: number; zoom: number; address: string; } | null>(null);
   const [showSidebar, setShowSidebar] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
+  const mapViewRef = useRef<MapViewRef>(null);
 
-  const handleLocationTag = async () => {
-    // Get current panorama location from MapView
-    // This would need to be passed up from the MapView component
-    const mapElement = document.querySelector('.map-container');
-    if (!mapElement) return;
+  const handleLocationTag = async (location: { lat: number; lng: number; heading: number; pitch: number; zoom: number; } | null) => {
+    if (!location) return;
 
-    // For now, we'll use a placeholder
-    const location = {
-      lat: 42.6526,
-      lng: -73.7562,
-      heading: 0,
-      pitch: 0,
-      zoom: 1,
-      address: await reverseGeocode(42.6526, -73.7562)
+    const fullLocation = {
+        ...location,
+        address: await reverseGeocode(location.lat, location.lng)
     };
 
-    setCurrentLocation(location);
+    setCurrentLocation(fullLocation);
     setShowModal(true);
   };
 
-  const handleSaveLead = async (leadData: any) => {
-    await addLead(leadData);
+  const handleSaveLead = async (leadData: Omit<Lead, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
+    const leadWithUser: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'> = {
+      ...leadData,
+      userId: user!.uid
+    };
+    await addLead(leadWithUser);
     setShowModal(false);
   };
 
@@ -97,18 +95,20 @@ function App() {
       <div className="flex-1 flex overflow-hidden">
         {/* Map */}
         <div className="flex-1 relative">
-          <MapView onLocationTag={handleLocationTag} />
+          <MapView
+            ref={mapViewRef}
+            onLocationTag={handleLocationTag}
+          />
         </div>
 
         {/* Sidebar */}
         {showSidebar && (
           <div className="w-96 border-l border-gray-200 bg-white overflow-hidden">
-            <LeadList 
-              leads={leads} 
+            <LeadList
+              leads={leads}
               onDelete={deleteLead}
               onLeadClick={(lead) => {
-                // Navigate to lead location on map
-                console.log('Navigate to:', lead);
+                mapViewRef.current?.moveTo(lead.lat, lead.lng);
               }}
             />
           </div>
