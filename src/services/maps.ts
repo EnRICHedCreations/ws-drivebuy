@@ -3,8 +3,7 @@ import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
 export const initGoogleMaps = async () => {
   // Set the API key and options
   setOptions({
-    apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-    version: 'weekly'
+    key: import.meta.env.VITE_GOOGLE_MAPS_API_KEY
   });
 
   // Import the required libraries
@@ -16,9 +15,9 @@ export const initGoogleMaps = async () => {
 
 export const createStreetViewPanorama = (
   element: HTMLElement,
-  options: google.maps.StreetViewPanoramaOptions
-): google.maps.StreetViewPanorama => {
-  return new google.maps.StreetViewPanorama(element, {
+  options: any
+): any => {
+  return new (window as any).google.maps.StreetViewPanorama(element, {
     addressControl: true,
     linksControl: true,
     panControl: true,
@@ -28,8 +27,8 @@ export const createStreetViewPanorama = (
   });
 };
 
-export const geocodeAddress = async (address: string): Promise<google.maps.GeocoderResult | null> => {
-  const geocoder = new google.maps.Geocoder();
+export const geocodeAddress = async (address: string): Promise<any | null> => {
+  const geocoder = new (window as any).google.maps.Geocoder();
   try {
     const result = await geocoder.geocode({ address });
     return result.results[0] || null;
@@ -40,7 +39,7 @@ export const geocodeAddress = async (address: string): Promise<google.maps.Geoco
 };
 
 export const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
-  const geocoder = new google.maps.Geocoder();
+  const geocoder = new (window as any).google.maps.Geocoder();
   try {
     const result = await geocoder.geocode({ location: { lat, lng } });
     return result.results[0]?.formatted_address || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
