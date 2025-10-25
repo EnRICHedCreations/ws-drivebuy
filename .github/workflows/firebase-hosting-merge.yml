@@ -17,4 +17,4 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_WS_DRIVEBUY }}
           channelId: live
-          projectId: ws-drivebuy
+          projectId: ws-drivebuy-476123
