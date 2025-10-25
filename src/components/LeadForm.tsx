@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Camera } from 'lucide-react';
+import { X } from 'lucide-react';
 import type { Lead } from '../types';
 
 interface LeadFormProps {
@@ -31,8 +31,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ location, onSave, onClose })
       codeViolations: false,
       other: [] as string[]
     },
-    tags: [] as string[],
-    screenshots: [] as string[]
+    tags: [] as string[]
   });
 
   const indicators = [
@@ -50,48 +49,6 @@ export const LeadForm: React.FC<LeadFormProps> = ({ location, onSave, onClose })
     return Math.min(100, Math.round((checkedCount / 7) * 100));
   };
 
-  const handleScreenshot = async () => {
-    try {
-      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-      if (!apiKey) {
-        alert('Google Maps API key not configured');
-        return;
-      }
-
-      // Calculate field of view from zoom (0-5 range to 10-120 degrees)
-      const fov = Math.max(10, Math.min(120, 120 - (location.zoom * 20)));
-
-      // Build Street View Static API URL
-      const url = `https://maps.googleapis.com/maps/api/streetview?` +
-        `size=800x600` +
-        `&location=${location.lat},${location.lng}` +
-        `&heading=${location.heading}` +
-        `&pitch=${location.pitch}` +
-        `&fov=${fov}` +
-        `&key=${apiKey}`;
-
-      // Fetch the image
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Failed to fetch Street View image');
-
-      // Convert to base64
-      const blob = await response.blob();
-      const reader = new FileReader();
-
-      reader.onloadend = () => {
-        const base64data = reader.result as string;
-        setFormData(prev => ({
-          ...prev,
-          screenshots: [...prev.screenshots, base64data]
-        }));
-      };
-
-      reader.readAsDataURL(blob);
-    } catch (err) {
-      console.error('Screenshot error:', err);
-      alert('Failed to capture screenshot. Please check your internet connection and try again.');
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,7 +67,6 @@ export const LeadForm: React.FC<LeadFormProps> = ({ location, onSave, onClose })
       indicators: formData.indicators,
       notes: formData.notes,
       priorityRating: formData.priorityRating,
-      screenshots: formData.screenshots,
       tags: formData.tags,
       status: 'new',
       sharedWith: []
@@ -230,18 +186,6 @@ export const LeadForm: React.FC<LeadFormProps> = ({ location, onSave, onClose })
               rows={4}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
             />
-          </div>
-
-          {/* Screenshot */}
-          <div>
-            <button
-              type="button"
-              onClick={handleScreenshot}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
-            >
-              <Camera size={20} />
-              Capture Screenshot ({formData.screenshots.length})
-            </button>
           </div>
 
           {/* Submit Buttons */}
